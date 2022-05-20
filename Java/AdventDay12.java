@@ -1,94 +1,96 @@
 import java.io.*;
 import java.util.*;
 public class AdventDay12 {
-	public static String[][] data;
 	public static void main(String[] args) {
-		List<String> list;
+		System.out.printf("Part 1: %d%n", part1());
+		System.out.printf("Part 2: %d%n", part2());
+	}
+	private static int part1() {
+		String[][] data = getData();
+		List<String> completePaths = new ArrayList<>();
+		completePaths.add(",start");
+		while (!isFinished(completePaths)) {
+			List<String> tempPaths = new ArrayList<>();
+			for (int path=0; path<completePaths.size(); path++) {
+				String pathOn = completePaths.get(path).substring(completePaths.get(path).lastIndexOf(",")+1);
+				if (pathOn.equals("end")) {
+					tempPaths.add(completePaths.get(path));
+					continue;
+				}
+				String[] paths = getPaths(data, pathOn);
+				for (int j=0; j<paths.length; j++) {
+					if (paths[j].equals(paths[j].toLowerCase()) && completePaths.get(path).contains(paths[j])) continue;
+					tempPaths.add(completePaths.get(path)+","+paths[j]);
+				}
+			}
+			completePaths = new ArrayList<>(tempPaths);
+		}
+		// for (int i=0; i<completePaths.size(); i++) System.out.println(completePaths.get(i));
+		return completePaths.size();
+	}
+	private static int part2() {
+		String[][] data = getData();
+		List<String> completePaths = new ArrayList<>();
+		completePaths.add(",start");
+		while (!isFinished(completePaths)) {
+			List<String> tempPaths = new ArrayList<>();
+			for (String path : completePaths) {
+				String pathOn = path.substring(path.lastIndexOf(",")+1);
+				if (pathOn.equals("end")) {
+					tempPaths.add(path);
+					continue;
+				}
+				String[] paths = getPaths(data, pathOn);
+				for (String p : paths) {
+					if (canAdd(path, p)) tempPaths.add(path+","+p);
+				}
+			}
+			completePaths = new ArrayList<>(tempPaths);
+		}
+		// for (int i=0; i<completePaths.size(); i++) System.out.println(completePaths.get(i));
+		return completePaths.size();
+	}
+	private static boolean canAdd(String path, String cave) {
+		if (!path.contains(cave)) return true;
+		else if (cave.equals(cave.toUpperCase())) return true;
+		else {
+			String[] A_path = path.split(",");
+			for (String p : A_path) {
+				String tempPath = path;
+				if (p.equals(p.toLowerCase()) && path.length() - tempPath.replace(p, "").length() > p.length()) return false;
+			}
+		} return true;
+	}
+	private static String[][] getData() {
+		List<String> tempData = new ArrayList<>();
 		try {
-			File file = new File("./Inputs/inputDay12.txt");
-			Scanner myScanner = new Scanner(file);
-			list = new ArrayList<>();
-			while (myScanner.hasNextLine()) list.add(myScanner.nextLine());
-			myScanner.close();
-		} catch (IOException e) {
-			System.out.println(e);
-			return;
-		}
-		data = new String[list.size()][2];
-		for (int line=0; line<data.length; line++) {
-			String input = list.get(line);
-			data[line][0] = input.substring(0, input.indexOf("-"));
-			data[line][1] = input.substring(input.indexOf("-")+1);
-		}
-		List<List<String>> paths = GetLists();
-		List<Integer> pathsToRemove = new ArrayList<>();
+			BufferedReader reader = new BufferedReader(new FileReader(new File("./Inputs/inputDay12.txt")));
+			String line;
+			while ((line = reader.readLine()) != null) {
+				tempData.add(line);
+			}
+		} catch (IOException e) { System.out.println(e); }
 
-		for (int i=0; i<paths.size(); i++) {
-			List<String> tempList = new ArrayList<>();
-			for (int j=1; j<paths.get(i).size(); j++) {
-				if (paths.get(i).get(j).equals("end")) continue;
-				if (Character.isLowerCase(paths.get(i).get(j).charAt(0))) {
-					tempList.add(paths.get(i).get(j));
-				}
-				if (!tempList.isEmpty()) {
-					for (int k=0; k<tempList.size(); k++) {
-						if (tempList.get(k).equals(paths.get(i).get(j))) {
-							pathsToRemove.add(i);
-							break;
-						}
-					}
-				}
-			}
+		String[][] data = new String[tempData.size()][2];
+		for (int i=0; i<tempData.size(); i++) {
+			data[i] = tempData.get(i).split("-");
 		}
-		pathsToRemove.sort(null);
-		for (int i=pathsToRemove.size()-1; i>-1; i--) {
-			paths.remove(pathsToRemove.get(i));
-		}
-
-		System.out.println("=".repeat(30));
-		for (int i=0; i<paths.size(); i++) System.out.printf("%2d: %s%n", i, paths.get(i));
-		System.out.println("=".repeat(30));
+		return data;
 	}
-	public static List<List<String>> GetLists() {
-		List<List<String>> listOfLists = new ArrayList<>();
-		List<String> tempList = new ArrayList<>();
-		tempList = GetPaths("start");
-		for (int i=0; i<tempList.size(); i++) {
-			listOfLists.add(Arrays.asList("start", tempList.get(i)));
+	private static String[] getPaths(String[][] data, String start) {
+		List<String> paths = new ArrayList<>();
+		for (int i=0; i<data.length; i++) {
+			if (data[i][0].equals(start) && !data[i][1].equals("start")) paths.add(data[i][1]);
+			if (data[i][1].equals(start) && !data[i][0].equals("start")) paths.add(data[i][0]);
 		}
-		for (int times=0; times<4; times++) {
-			int listOfListsSize = listOfLists.size();
-			List<List<String>> tempListOfLists = new ArrayList<>();
-			for (int i=0; i<listOfListsSize; i++) {
-				List<String> tempElements = listOfLists.get(i);
-				List<String> elements = new ArrayList<>();
-				elements.addAll(tempElements);
-				if (!elements.get(elements.size()-1).equals("end")) {
-					List<String> pathsList = GetPaths(elements.get(elements.size()-1));
-					List<String> elements2 = new ArrayList<>(elements);
-					for (int j=0; j<pathsList.size(); j++) {
-						elements2 = new ArrayList<>(elements);
-						elements2.add(pathsList.get(j));
-						tempListOfLists.add(elements2);
-					}
-				} else {
-					tempListOfLists.add(elements);
-				}
-			}
-			listOfLists = new ArrayList<>(tempListOfLists);
-		}
-		return listOfLists;
+		if (paths.isEmpty()) return null;
+		else return paths.toArray(new String[0]);
 	}
-	public static List<String> GetPaths(String input) {
-		List<String> list = new ArrayList<>();
-		for (int line=0; line<data.length; line++) {
-			if (data[line][0].equals(input)) {
-				if (!data[line][1].equals("start")) list.add(data[line][1]);
-			}
-			if (data[line][1].equals(input)) {
-				if (!data[line][0].equals("start")) list.add(data[line][0]);
-			}
+	private static boolean isFinished(List<String> paths) {
+		for (String path : paths) {
+			String lastPath = path.substring(path.lastIndexOf(",")+1);
+			if (!lastPath.equals("end")) return false;
 		}
-		return list;
+		return true;
 	}
 }
