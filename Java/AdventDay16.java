@@ -1,29 +1,21 @@
 import java.io.*;
 public class AdventDay16 {
 	public static void main(String[] args) {
-
+		System.out.printf("Part 1: %d%n", part1());
 	}
-	private static int[][] getInput() {
-		int[][] map = new int[0][0];
+	private static String getInput() {
+		String input;
 		try {
-			File file = new File("./Inputs/inputDay15.txt");
-			BufferedReader reader = new BufferedReader(new FileReader(file));
-			String str = reader.readLine();
-			map = new int[str.length()][str.length()];
-			for (int i=0; i<str.length(); i++) {
-				map[i][0] = Character.getNumericValue(str.charAt(i));
-			}
-			int counter = 1;
-			while ((str = reader.readLine()) != null) {
-				for (int i=0; i<str.length(); i++) {
-					map[i][counter] = Character.getNumericValue(str.charAt(i));
-				}
-				counter++;
-			}
+			BufferedReader reader = new BufferedReader(new FileReader(new File("./Inputs/inputDay16.txt")));
+			input = reader.readLine();
 			reader.close();
 		} catch (IOException e) {
 			System.out.println(e);
 		}
-		return map;
+		return input;
+	}
+	private static int part1() {
+		String data = getInput();
+		
 	}
 }
